@@ -13,7 +13,7 @@ pygame.font.init()
 PLAYER_RADIUS = 10
 START_VEL = 9
 BALL_RADIUS = 5
-FONT = "CascadiaCode.ttf"
+FONT = "font\CascadiaCode.ttf"
 TITLE = "Jello Battle Royale"
 
 INNER_WIDTH = 850
