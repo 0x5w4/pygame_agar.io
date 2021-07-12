@@ -163,7 +163,7 @@ def main(name):
 		balls, players, game_time = server.send(data)
 
 		# DRAW MESSAGE BOX
-		msg_count = len(msg_history)
+		# msg_count = len(msg_history)
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -188,11 +188,13 @@ def main(name):
 						rect_status = 3
 
 					elif event.key == pygame.K_RETURN:
-						if msg_count == 20:
-							msg_history = msg_history[1:]
-							msg_history.append(user_msg)
-						else:
-							msg_history.append(user_msg)
+						# if msg_count == 20:
+						# 	msg_history = msg_history[1:]
+						# 	msg_history.append(user_msg)
+						# else:
+						# 	msg_history.append(user_msg)
+						data = "msg {}: {}".format(name, user_msg)
+						msg_history = server.send(data)
 						user_msg = ''
 
 					else:
@@ -200,6 +202,9 @@ def main(name):
 
 		# Redraw & Update frame
 		redraw_window(players, balls, game_time, player["score"])
+
+		data = "history"
+		msg_history = server.send(data)
 
 		pygame.draw.rect(window,color_passive,history_rect,2)
 		history_rect.w = max(100,329)

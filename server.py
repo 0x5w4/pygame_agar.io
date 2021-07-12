@@ -40,6 +40,7 @@ print(f"[SERVER] Server Started with local ip {SERVER_IP}")
 clients = {}
 players = {}
 balls = []
+msg_history = []
 connections = 0
 _id = 0
 colors = [(255,0,0), (255, 128, 0), (255,255,0), (128,255,0),(0,255,0),(0,255,128),(0,255,255),(0, 128, 255), (0,0,255), (0,0,255), (128,0,255),(255,0,255), (255,0,128),(128,128,128), (0,0,0)]
@@ -127,13 +128,18 @@ def get_start_location(players):
 
 #FUNGSI UNTUK MEMBUAT THREAD UNTUK TIAP PLAYER DALAM SERVER
 def threaded_client(clients, sock_client, addr_client, _id):
-	global connections, players, balls, game_time, nxt, start
+	global connections, players, balls, msg_history, game_time, nxt, start
 
 	current_id = _id
+	msg_count = len(msg_history)
 
 	#MENERIMA NAMA DARI PLAYER
 	username_client = sock_client.recv(16).decode("utf-8")
 	print("[LOG]", username_client, "connected to the server.")
+
+	if msg_count == 20:
+		msg_history = msg_history[1:]
+	msg_history.append("{} CONNECTED".format(username_client))
 
 	#MEMBUAT PROPERTI UNTUK PLAYER
 	color = colors[current_id]
@@ -147,6 +153,7 @@ def threaded_client(clients, sock_client, addr_client, _id):
 	# it will send back all of the other clients info
 
 	while True:
+		msg_count = len(msg_history)
 
 		if start:
 			game_time = round(time.time()-start_time)
@@ -194,8 +201,15 @@ def threaded_client(clients, sock_client, addr_client, _id):
 			elif data.split(" ")[0] == "jump":
 				send_data = pickle.dumps((balls,players, game_time))
 
-			elif data.split("|")[0] == "msg":
-				send_data = "{}: {}".format(username_client, data.split("|")[1])
+			elif data.split(" ")[0] == "msg":
+				msg = data[4:]
+				if msg_count == 20:
+					msg_history = msg_history[1:]
+				msg_history.append(msg)
+				send_data = pickle.dumps(msg_history)
+
+			elif data.split(" ")[0] == "history":
+				send_data = pickle.dumps(msg_history)
 					
 			else:
 				# any other command just send back list of players
@@ -212,6 +226,11 @@ def threaded_client(clients, sock_client, addr_client, _id):
 
 	# When user disconnects	
 	print("[DISCONNECT] Name:", username_client, ", Client Id:", current_id, "disconnected")
+
+	
+	if msg_count == 20:
+		msg_history = msg_history[1:]
+	msg_history.append("{} DISCONNECTED".format(username_client))
 
 	connections -= 1 
 	del players[current_id]  # REMOVE FROM PLAYER LIST
